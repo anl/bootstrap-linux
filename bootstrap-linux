@@ -1,0 +1,16 @@
+#!/bin/bash
+# Bootstrap a Linux machine: Update packages, install Puppet agent.
+# Supports Ubuntu.
+
+# Add puppet repo:
+/usr/bin/curl -L -o /tmp/puppetlabs-release-precise.deb http://apt.puppetlabs.com/puppetlabs-release-precise.deb
+/usr/bin/dpkg -i /tmp/puppetlabs-release-precise.deb
+
+# Update installed packages:
+/usr/bin/apt-get update
+/usr/bin/apt-get -y dist-upgrade
+
+# Add puppet agent:
+/usr/bin/apt-get -y install puppet
+
+echo "Bootstrap complete."

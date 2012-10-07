@@ -1,6 +1,47 @@
 #!/bin/bash
-# Bootstrap a Linux machine: Update packages, install Puppet agent.
-# Supports Ubuntu.
+# Bootstrap an Ubuntu 12.04 machine.
+#
+# - Set hostname
+# - Add domain name to DNS search path via /etc/network/interfaces
+# - Update packages
+# - Install Puppet agent.
+
+function usage {
+    echo "Usage: $0 -n fqdn"
+    echo "Usage: $0 -h"
+    exit 1
+}
+
+while getopts "hn:" flag
+do
+    case $flag in
+	n) fqdn=$OPTARG ;;
+	*) usage ;;
+    esac
+done
+
+# Fqdn is a required argument:
+if [ -z $fqdn ] ; then
+    echo "Please set a fully-qualified domain name."
+    echo
+    usage
+fi
+
+# Set hostname, by removing domain from fqdn:
+echo "${fqdn}" | sed 's/\..*$//' > /etc/hostname
+/usr/sbin/service hostname start
+
+# Assume the host has its network configured using DHCP, and only one 
+# interface:
+domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
+cat > /etc/network/interfaces <<EOF
+auto lo eth0
+iface lo inet loopback
+
+iface eth0 inet dhcp
+  dns-domain $domain
+EOF
+/usr/sbin/service networking restart
 
 # Add puppet repo:
 /usr/bin/curl -L -o /tmp/puppetlabs-release-precise.deb http://apt.puppetlabs.com/puppetlabs-release-precise.deb

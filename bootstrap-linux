@@ -5,6 +5,7 @@
 # - Add domain name to DNS search path via /etc/network/interfaces
 # - Update packages
 # - Install Puppet agent.
+# - Install prereqs for additional configuration
 
 function usage {
     echo "Usage: $0 -n fqdn"
@@ -53,5 +54,8 @@ EOF
 
 # Add puppet agent:
 /usr/bin/apt-get -y install puppet
+
+# Add additional packages:
+/usr/bin/apt-get -y install git
 
 echo "Bootstrap complete."

@@ -61,6 +61,7 @@ EOF
 
 # Add IP address and hostname to /etc/hosts:
 hosts_tmp=$(mktemp)
+chmod 644 $hosts_tmp
 ip=$(facter ipaddress)
 echo "${ip} ${fqdn} ${hostname}" > $hosts_tmp
 grep -v $ip /etc/hosts >> $hosts_tmp

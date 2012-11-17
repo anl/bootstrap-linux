@@ -29,7 +29,8 @@ if [ -z $fqdn ] ; then
 fi
 
 # Set hostname, by removing domain from fqdn:
-echo "${fqdn}" | sed 's/\..*$//' > /etc/hostname
+hostname=$(echo "${fqdn}" | sed 's/\..*$//')
+echo $hostname > /etc/hostname
 /usr/sbin/service hostname start
 
 # Assume the host has its network configured using DHCP, and only one 
@@ -57,5 +58,12 @@ EOF
 
 # Add additional packages:
 /usr/bin/apt-get -y install git
+
+# Add IP address and hostname to /etc/hosts:
+hosts_tmp=$(mktemp)
+ip=$(facter ipaddress)
+echo "${ip} ${fqdn} ${hostname}" > $hosts_tmp
+grep -v $ip /etc/hosts >> $hosts_tmp
+mv $hosts_tmp /etc/hosts
 
 echo "Bootstrap complete."

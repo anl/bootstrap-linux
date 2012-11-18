@@ -31,7 +31,7 @@ fi
 # Set hostname, by removing domain from fqdn:
 hostname=$(echo "${fqdn}" | sed 's/\..*$//')
 echo $hostname > /etc/hostname
-/usr/sbin/service hostname start
+/bin/hostname -F /etc/hostname
 
 # Assume the host has its network configured using DHCP, and only one 
 # interface:

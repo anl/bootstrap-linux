@@ -10,7 +10,7 @@
 
 # Install 1.8.7-p370 by default, unless RUBY_VERS environment variable is set:
 default_ruby='1.8.7-p370'
-RUBY_VERS={$RUBY_VERS:-$default_ruby}
+RUBY_VERS=${RUBY_VERS:-$default_ruby}
 
 if [ `id -u` -ne 0 ] ; then
   echo "Re-run this script as root - this script modifies key system files."

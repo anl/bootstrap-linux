@@ -19,13 +19,14 @@ fi
 
 /usr/bin/apt-get install build-essential libssl-dev zlib1g-dev
 
-cd ~root
+roothome=~root
+cd $roothome
 /usr/bin/git clone git://github.com/sstephenson/rbenv.git .rbenv
-echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> .bash_profile
+echo 'export PATH="$roothome/.rbenv/bin:$PATH"' >> .bash_profile
 echo 'eval "$(rbenv init -)"' >> .bash_profile
 /usr/bin/git clone git://github.com/sstephenson/ruby-build.git .rbenv/plugins/ruby-build
 
-source ~root/.bash_profile
+source .bash_profile
 
 rbenv install $RUBY_VERS
 rbenv shell $RUBY_VERS

@@ -26,5 +26,4 @@ echo 'eval "$(rbenv init -)"' >> .bash_profile
 /usr/bin/git clone git://github.com/sstephenson/ruby-build.git .rbenv/plugins/ruby-build
 
 su -l root -c "rbenv install $RUBY_VERS"
-su -l root -c "rbenv shell $RUBY_VERS"
-su -l root -c "gem install librarian-puppet --no-ri --no-rdoc"
+su -l root -c "rbenv shell $RUBY_VERS && gem install librarian-puppet --no-ri --no-rdoc"

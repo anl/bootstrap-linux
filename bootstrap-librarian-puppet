@@ -1,5 +1,6 @@
 #!/bin/bash
-# Bootstrap librarian-puppet for root user on an Ubuntu 12.04 machine.
+# Bootstrap puppetmaster and librarian-puppet for root user on an Ubuntu 12.04
+# machine.
 #
 # The system is assumed to have already been configured with boostrap-linux.
 #
@@ -7,6 +8,8 @@
 # - Install rbenv and ruby-build
 # - Set up environment
 # - Install Ruby and Gems
+# - Drop in /etc/puppet directory from GitHub
+# - Install Puppetmaster
 
 # Install 1.8.7-p370 by default, unless RUBY_VERS environment variable is set:
 default_ruby='1.8.7-p370'
@@ -27,3 +30,9 @@ echo 'eval "$(rbenv init -)"' >> .bash_profile
 
 su -l root -c "rbenv install $RUBY_VERS"
 su -l root -c "rbenv shell $RUBY_VERS && gem install librarian-puppet --no-ri --no-rdoc"
+
+/usr/bin/git clone git://github.com/anl/etc-puppet.git /etc/puppet
+
+/usr/bin/puppet module install cprice404-inifile
+/usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
+/usr/bin/puppet apply --modulepath=~/.puppet/modules -e "class { puppetmaster: hiera_gpg => true }"

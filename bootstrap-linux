@@ -63,8 +63,8 @@ EOF
 hosts_tmp=$(mktemp)
 chmod 644 $hosts_tmp
 ip=$(facter ipaddress)
-echo "${ip} ${fqdn} ${hostname}" > $hosts_tmp
-grep -v $ip /etc/hosts >> $hosts_tmp
+echo "127.0.1.1 ${fqdn} ${hostname}" > $hosts_tmp
+grep -v 127.0.1.1 /etc/hosts >> $hosts_tmp
 mv $hosts_tmp /etc/hosts
 
 echo "Bootstrap complete."

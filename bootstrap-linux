@@ -8,24 +8,34 @@
 # - Install prereqs for additional configuration
 
 function usage {
-    echo "Usage: $0 -n fqdn"
+    echo "Usage: $0 -n fqdn [-p puppetmasterFQDN [-i puppetmasterIP]]"
     echo "Usage: $0 -h"
     exit 1
 }
 
-while getopts "hn:" flag
+while getopts "hi:n:p:" flag
 do
     case $flag in
+	i) pmip=$OPTARG ;;
 	n) fqdn=$OPTARG ;;
+	p) puppetmaster=$OPTARG ;;
 	*) usage ;;
     esac
 done
 
 # Fqdn is a required argument:
-if [ -z $fqdn ] ; then
+if [ -z "$fqdn" ] ; then
     echo "Please set a fully-qualified domain name."
     echo
     usage
+fi
+
+if [ -z "$puppetmaster" ] ; then
+    if [ ! -z "$pmip" ] ; then
+	echo "Must set Puppetmaster FQDN when specifying its IP"
+	echo
+	usage
+    fi
 fi
 
 # Set hostname, by removing domain from fqdn:
@@ -66,5 +76,31 @@ ip=$(facter ipaddress)
 echo "127.0.1.1 ${fqdn} ${hostname}" > $hosts_tmp
 grep -v 127.0.1.1 /etc/hosts >> $hosts_tmp
 mv $hosts_tmp /etc/hosts
+
+if [ ! -z "$puppetmaster" ] ; then
+    cat > /etc/puppet/puppet.conf <<EOF
+[main]
+logdir=/var/log/puppet
+vardir=/var/lib/puppet
+ssldir=/var/lib/puppet/ssl
+rundir=/var/run/puppet
+factpath=\$vardir/lib/facter
+templatedir=\$confdir/templates
+server = $puppetmaster
+
+[master]
+# These are needed when the puppetmaster is run by passenger
+# and can safely be removed if webrick is used.
+ssl_client_header = SSL_CLIENT_S_DN 
+ssl_client_verify_header = SSL_CLIENT_VERIFY
+
+EOF
+
+    if [ ! -z "$pmip" ] ; then
+	pmhostname=$(echo "${puppetmaster}" | sed 's/\..*$//')
+	echo "$pmip $puppetmaster $pmhostname" >> /etc/hosts
+    fi
+
+fi
 
 echo "Bootstrap complete."

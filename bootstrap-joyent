@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+
+/opt/local/bin/pkgin up
+/opt/local/bin/pkgin -y in ruby193-1.9.3p194
+/opt/local/bin/gem install puppet --no-ri --no-rdoc
+
+mkdir /var/log/puppet
+mkdir -p /var/lib/puppet/ssl
+mkdir /var/run/puppet
+chmod 1777 /var/run/puppet
+
+groupadd puppet
+useradd -c "Puppet configuration management daemon" -d /var/lib/puppet -s /bin/false puppet
+
+# Remove annoying bogus package providers:
+rm /opt/local/bin/apt-get
+rm /opt/local/bin/rpm
+rm /opt/local/bin/yum

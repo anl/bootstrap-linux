@@ -1,5 +1,35 @@
 #!/usr/bin/bash
 
+function banner {
+    echo "Usage:"
+    echo "    $0 -n fqdn [-p puppetmaster]"
+    echo
+    echo "Help:"
+    echo "    $0 -h"
+    exit 1
+}
+
+while getopts "p:" flag
+do
+    case $flag in
+	n) fqdn=$OPTARG ;;
+	p) puppetmaster=$OPTARG ;;
+	*) banner ;;
+    esac
+done
+
+# Fqdn is a required argument:
+if [ -z "$fqdn" ] ; then
+    echo "Please set a fully-qualified domain name."
+    echo
+    banner
+fi
+
+# Check if non-default puppetmaster value set:
+if [ -z "$puppetmaster" ] ; then
+    $puppetmaster='puppet.int.hurricane-ridge.com'
+fi
+
 /opt/local/bin/pkgin up
 /opt/local/bin/pkgin -y in ruby193-1.9.3p194
 /opt/local/bin/gem install puppet --no-ri --no-rdoc
@@ -16,3 +46,38 @@ useradd -c "Puppet configuration management daemon" -d /var/lib/puppet -s /bin/f
 rm /opt/local/bin/apt-get
 rm /opt/local/bin/rpm
 rm /opt/local/bin/yum
+
+# Update /etc/inet/hosts:
+hostname=$(facter hostname)
+ip=$(facter ipaddress)
+hosts_tmp=$(mktemp)
+chmod 644 $hosts_tmp
+echo "$ip $fqdn $hostname" > $hosts_tmp
+grep -v $ip /etc/hosts >> $hosts_tmp
+mv $hosts_tmp /etc/inet/hosts
+chmod 0444 /etc/inet/hosts
+chown root:sys /etc/inet/hosts
+
+# Create /etc/puppet/puppet.conf
+mkdir /etc/puppet
+chown root:sys /etc/puppet
+
+cat > /etc/puppet/puppet.conf <<EOF
+[main]
+logdir=/var/log/puppet
+vardir=/var/lib/puppet
+ssldir=/var/lib/puppet/ssl
+rundir=/var/run/puppet
+factpath=\$vardir/lib/facter
+templatedir=\$confdir/templates
+server = $puppetmaster
+
+[master]
+# These are needed when the puppetmaster is run by passenger
+# and can safely be removed if webrick is used.
+ssl_client_header = SSL_CLIENT_S_DN 
+ssl_client_verify_header = SSL_CLIENT_VERIFY
+EOF
+
+chown root:sys /etc/puppet/puppet.conf
+chmod 444 /etc/puppet/puppet.conf

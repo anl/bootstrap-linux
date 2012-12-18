@@ -9,7 +9,7 @@ function banner {
     exit 1
 }
 
-while getopts "p:" flag
+while getopts "n:p:" flag
 do
     case $flag in
 	n) fqdn=$OPTARG ;;

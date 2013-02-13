@@ -8,17 +8,20 @@
 # - Install prereqs for additional configuration
 
 function usage {
-    echo "Usage: $0 -n fqdn [-p puppetmasterFQDN [-i puppetmasterIP]]"
+    echo "Usage: $0 -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
     echo "Usage: $0 -h"
     exit 1
 }
 
-while getopts "hi:n:p:" flag
+dhcp=on
+
+while getopts "hi:n:p:s" flag
 do
     case $flag in
 	i) pmip=$OPTARG ;;
 	n) fqdn=$OPTARG ;;
 	p) puppetmaster=$OPTARG ;;
+        s) dhcp=off ;;
 	*) usage ;;
     esac
 done
@@ -43,17 +46,17 @@ hostname=$(echo "${fqdn}" | sed 's/\..*$//')
 echo $hostname > /etc/hostname
 /bin/hostname -F /etc/hostname
 
-# Assume the host has its network configured using DHCP, and only one 
-# interface:
-domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
-cat > /etc/network/interfaces <<EOF
+if [ $dhcp == 'on' ]; then
+    domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
+    cat > /etc/network/interfaces <<EOF
 auto lo eth0
 iface lo inet loopback
 
 iface eth0 inet dhcp
   dns-domain $domain
 EOF
-/usr/sbin/service networking restart
+    /usr/sbin/service networking restart
+fi
 
 # Add puppet repo:
 /usr/bin/curl -L -o /tmp/puppetlabs-release-precise.deb http://apt.puppetlabs.com/puppetlabs-release-precise.deb

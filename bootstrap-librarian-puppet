@@ -74,10 +74,6 @@ EOF
 /bin/chown git:git /srv/git/hiera.git/hooks/post-receive
 /bin/chmod 755 /srv/git/hiera.git/hooks/post-receive
 
-/bin/mkdir /etc/hiera
-/bin/chown git:git /etc/hiera
-/bin/chmod 755 /etc/hiera
-
 /usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
 /usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
 /usr/bin/puppet apply --modulepath=~/.puppet/modules -e "class { puppetmaster: hiera_gpg => true }"
@@ -89,6 +85,14 @@ fi
 /bin/mkdir /etc/puppet
 /bin/chown git:git /etc/puppet
 /bin/chmod 755 /etc/puppet
+
+if [ -d /etc/hiera ] ; then
+    mv /etc/hiera /etc/hiera.orig
+fi
+
+/bin/mkdir /etc/hiera
+/bin/chown git:git /etc/hiera
+/bin/chmod 755 /etc/hiera
 
 su git -c "/usr/bin/git clone git://github.com/anl/etc-puppet.git /etc/puppet"
 su -l git -c "cd /etc/puppet; rbenv local $RUBY_VERS"

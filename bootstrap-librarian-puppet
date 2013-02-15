@@ -15,6 +15,19 @@
 
 set -e
 
+function usage() {
+    echo "$0 -h"
+    exit 1
+}
+
+while getopts "a:" flag
+do
+    case $flag in
+	a) auth_keys=$OPTARG ;;
+	*) usage ;;
+    esac
+done
+
 cwd=$PWD
 
 # Install 1.8.7-p370 by default, unless RUBY_VERS environment variable is set:
@@ -35,6 +48,14 @@ fi
 
 # Create local "git" user:
 /usr/sbin/useradd -c "Git User" -U -m -s /bin/bash git
+
+# If supplied, add SSH authorized_keys for "git" user:
+if [ ! -z "$auth_keys" ] ; then
+    /bin/mkdir -m 0700 ~git/.ssh
+    /bin/cp $auth_keys ~git/.ssh/authorized_keys
+    /bin/chown git:git ~git/.ssh/authorized_keys
+    /bin/chmod 0600 ~git/.ssh/authorized_keys
+fi
 
 # Install librarian-puppet for user "git":
 cd ~git

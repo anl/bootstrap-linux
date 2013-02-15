@@ -5,11 +5,13 @@
 # The system is assumed to have already been configured with boostrap-linux.
 #
 # - Install required packages
+# - Create "git" user
 # - Install rbenv and ruby-build
 # - Set up environment
-# - Install Ruby and Gems
-# - Drop in /etc/puppet directory from GitHub
+# - Install Ruby and Gems into Rbenv
+# - Create pushable Git repos for /etc/puppet and /etc/hiera
 # - Install Puppetmaster
+# - Drop in /etc/puppet directory from GitHub
 
 set -e
 

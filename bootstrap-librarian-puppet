@@ -79,8 +79,10 @@ su git -c "/usr/bin/git clone --bare git://github.com/anl/etc-puppet.git \
     /srv/git/puppet.git"
 
 cat > /srv/git/puppet.git/hooks/post-receive <<EOF
-#!/bin/sh
+#!/bin/bash
+export PATH="~git/.rbenv/bin:$PATH"
 GIT_WORK_TREE=/etc/puppet /usr/bin/git checkout -f
+eval "$(rbenv init -)"
 cd /etc/puppet
 rbenv shell $RUBY_VERS && librarian-puppet update
 EOF

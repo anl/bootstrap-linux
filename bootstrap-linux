@@ -7,17 +7,21 @@
 # - Install Puppet agent.
 # - Install prereqs for additional configuration
 
+# Default values:
+puppet_default_vers=3.1.1-1puppetlabs1
+
 function usage {
-    echo "Usage: $0 -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
+    echo "Usage: $0 -d [puppet version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
     echo "Usage: $0 -h"
     exit 1
 }
 
 dhcp=on
 
-while getopts "hi:n:p:s" flag
+while getopts "d:hi:n:p:s" flag
 do
     case $flag in
+	d) puppet_version=$OPTARG ;;
 	i) pmip=$OPTARG ;;
 	n) fqdn=$OPTARG ;;
 	p) puppetmaster=$OPTARG ;;
@@ -25,6 +29,9 @@ do
 	*) usage ;;
     esac
 done
+
+# Check for non-default Puppet version to install:
+: ${puppet_version:=$puppet_default_vers}
 
 # Fqdn is a required argument:
 if [ -z "$fqdn" ] ; then
@@ -67,7 +74,7 @@ fi
 /usr/bin/apt-get -y dist-upgrade
 
 # Add puppet agent:
-/usr/bin/apt-get -y install puppet
+/usr/bin/apt-get -y install puppet=${puppet_version}
 
 # Add additional packages:
 /usr/bin/apt-get -y install git

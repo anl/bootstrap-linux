@@ -74,7 +74,7 @@ fi
 /usr/bin/apt-get -y dist-upgrade
 
 # Add puppet agent:
-/usr/bin/apt-get -y install puppet=${puppet_version}
+/usr/bin/apt-get -y install puppet=${puppet_version} puppet-common=${puppet_version}
 
 # Add additional packages:
 /usr/bin/apt-get -y install git

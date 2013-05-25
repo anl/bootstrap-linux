@@ -11,7 +11,7 @@
 puppet_default_vers=3.1.1-1puppetlabs1
 
 function usage {
-    echo "Usage: $0 -d [puppet version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
+    echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
     echo "Usage: $0 -h"
     exit 1
 }

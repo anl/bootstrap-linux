@@ -8,7 +8,7 @@
 # - Install prereqs for additional configuration
 
 # Default values:
-puppet_default_vers=3.1.1-1puppetlabs1
+puppet_default_vers=3.2.2-1puppetlabs1
 
 function usage {
     echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
@@ -31,7 +31,7 @@ do
 done
 
 # Check for non-default Puppet version to install:
-: ${puppet_version:=$puppet_default_vers}
+${puppet_version:=$puppet_default_vers}
 
 # Fqdn is a required argument:
 if [ -z "$fqdn" ] ; then

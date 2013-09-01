@@ -40,7 +40,7 @@ if [ `id -u` -ne 0 ] ; then
   exit 1
 fi
 
-/usr/bin/apt-get -y install build-essential git libssl-dev zlib1g-dev
+/usr/bin/apt-get -y install build-essential git gnupg libssl-dev zlib1g-dev
 
 #
 # Set up bare Puppet and Hiera - pushing to these repos deploys to

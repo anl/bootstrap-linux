@@ -90,15 +90,26 @@ EOF
 /bin/chown git:git /srv/git/puppet.git/hooks/post-receive
 /bin/chmod 755 /srv/git/puppet.git/hooks/post-receive
 
-su git -c "/usr/bin/git init --bare /srv/git/hiera.git"
+for repo in hiera hiera-gpg; do
+    su git -c "/usr/bin/git init --bare /srv/git/${repo}.git"
 
-cat > /srv/git/hiera.git/hooks/post-receive <<EOF
+    cat > /srv/git/${repo}.git/hooks/post-receive <<EOF
 #!/bin/sh
-GIT_WORK_TREE=/etc/hiera /usr/bin/git checkout -f
+GIT_WORK_TREE=/etc/${repo} /usr/bin/git checkout -f
 EOF
 
-/bin/chown git:git /srv/git/hiera.git/hooks/post-receive
-/bin/chmod 755 /srv/git/hiera.git/hooks/post-receive
+    /bin/chown git:git /srv/git/${repo}.git/hooks/post-receive
+    /bin/chmod 755 /srv/git/${repo}.git/hooks/post-receive
+
+    if [ -d /etc/${repo} ] ; then
+	mv /etc/${repo} /etc/${repo}.orig
+    fi
+
+    /bin/mkdir /etc/${repo}
+    /bin/chown git:git /etc/${repo}
+    /bin/chmod 755 /etc/${repo}
+
+done
 
 /usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
 /usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
@@ -111,14 +122,6 @@ fi
 /bin/mkdir /etc/puppet
 /bin/chown git:git /etc/puppet
 /bin/chmod 755 /etc/puppet
-
-if [ -d /etc/hiera ] ; then
-    mv /etc/hiera /etc/hiera.orig
-fi
-
-/bin/mkdir /etc/hiera
-/bin/chown git:git /etc/hiera
-/bin/chmod 755 /etc/hiera
 
 su git -c "/usr/bin/git clone git://github.com/anl/etc-puppet.git /etc/puppet"
 su -l git -c "cd /etc/puppet; rbenv local $RUBY_VERS"

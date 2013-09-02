@@ -2,7 +2,7 @@
 # Bootstrap puppetmaster and librarian-puppet for root user on an Ubuntu 12.04
 # machine.
 #
-# The system is assumed to have already been configured with boostrap-linux.
+# The system is assumed to have already been configured with bootstrap-linux.
 #
 # - Install required packages
 # - Create "git" user
@@ -16,7 +16,7 @@
 set -e
 
 function usage() {
-    echo "$0 -a <ssh authorized_keys file>"
+    echo "$0 [ -a <ssh authorized_keys file> ]"
     echo "$0 -h"
     exit 1
 }
@@ -29,6 +29,13 @@ do
     esac
 done
 
+# Basic test to make sure system has had bootstrap-linux run on it:
+if [ ! -x /usr/bin/puppet ] ; then
+    echo '/usr/bin/puppet not found; did you run bootstrap-linux?'
+    echo
+    usage
+fi
+
 cwd=$PWD
 
 # Install 1.8.7-p370 by default, unless RUBY_VERS environment variable is set:
@@ -40,11 +47,12 @@ if [ `id -u` -ne 0 ] ; then
   exit 1
 fi
 
-/usr/bin/apt-get -y install build-essential git libssl-dev zlib1g-dev
+/usr/bin/apt-get update
+/usr/bin/apt-get -y install build-essential git gnupg libssl-dev zlib1g-dev
 
 #
 # Set up bare Puppet and Hiera - pushing to these repos deploys to
-# /etc/hiera and /etc/puppet via a post-receive hook.
+# /etc/hiera, /etc/heira-gpg and /etc/puppet via a post-receive hook.
 #
 
 # Create local "git" user:
@@ -82,7 +90,7 @@ cat > /srv/git/puppet.git/hooks/post-receive <<EOF
 #!/bin/bash
 export PATH="~git/.rbenv/bin:$PATH"
 GIT_WORK_TREE=/etc/puppet /usr/bin/git checkout -f
-eval "$(rbenv init -)"
+eval "\$(rbenv init -)"
 cd /etc/puppet
 rbenv shell $RUBY_VERS && librarian-puppet update
 EOF
@@ -90,15 +98,26 @@ EOF
 /bin/chown git:git /srv/git/puppet.git/hooks/post-receive
 /bin/chmod 755 /srv/git/puppet.git/hooks/post-receive
 
-su git -c "/usr/bin/git init --bare /srv/git/hiera.git"
+for repo in hiera hiera-gpg; do
+    su git -c "/usr/bin/git init --bare /srv/git/${repo}.git"
 
-cat > /srv/git/hiera.git/hooks/post-receive <<EOF
+    cat > /srv/git/${repo}.git/hooks/post-receive <<EOF
 #!/bin/sh
-GIT_WORK_TREE=/etc/hiera /usr/bin/git checkout -f
+GIT_WORK_TREE=/etc/${repo} /usr/bin/git checkout -f
 EOF
 
-/bin/chown git:git /srv/git/hiera.git/hooks/post-receive
-/bin/chmod 755 /srv/git/hiera.git/hooks/post-receive
+    /bin/chown git:git /srv/git/${repo}.git/hooks/post-receive
+    /bin/chmod 755 /srv/git/${repo}.git/hooks/post-receive
+
+    if [ -d /etc/${repo} ] ; then
+	mv /etc/${repo} /etc/${repo}.orig
+    fi
+
+    /bin/mkdir /etc/${repo}
+    /bin/chown git:git /etc/${repo}
+    /bin/chmod 755 /etc/${repo}
+
+done
 
 /usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
 /usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
@@ -112,17 +131,24 @@ fi
 /bin/chown git:git /etc/puppet
 /bin/chmod 755 /etc/puppet
 
-if [ -d /etc/hiera ] ; then
-    mv /etc/hiera /etc/hiera.orig
-fi
-
-/bin/mkdir /etc/hiera
-/bin/chown git:git /etc/hiera
-/bin/chmod 755 /etc/hiera
-
 su git -c "/usr/bin/git clone git://github.com/anl/etc-puppet.git /etc/puppet"
 su -l git -c "cd /etc/puppet; rbenv local $RUBY_VERS"
 su -l git -c "cd /etc/puppet; librarian-puppet update"
+
+# Create a gpg key for "puppet" account:
+sudo -u puppet -H gpg --batch --gen-key <<EOF
+Key-Type: RSA
+Subkey-Type: RSA
+Key-Length: 2048
+Name-Real: Puppet
+Name-Comment: hiera-gpg
+Name-Email: puppet@$(hostname)
+Expire-Date: 0
+Passphrase: ''
+%commit
+EOF
+echo "hiera-gpg public key:"
+sudo -u puppet -H gpg --export -a puppet@$(hostname)
 
 # And back to where we started:
 cd $cwd

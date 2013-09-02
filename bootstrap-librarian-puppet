@@ -90,7 +90,7 @@ cat > /srv/git/puppet.git/hooks/post-receive <<EOF
 #!/bin/bash
 export PATH="~git/.rbenv/bin:$PATH"
 GIT_WORK_TREE=/etc/puppet /usr/bin/git checkout -f
-eval "$(rbenv init -)"
+eval "\$(rbenv init -)"
 cd /etc/puppet
 rbenv shell $RUBY_VERS && librarian-puppet update
 EOF
@@ -137,7 +137,6 @@ su -l git -c "cd /etc/puppet; librarian-puppet update"
 
 # Create a gpg key for "puppet" account:
 sudo -u puppet -H gpg --batch --gen-key <<EOF
-EOF
 Key-Type: RSA
 Subkey-Type: RSA
 Key-Length: 2048

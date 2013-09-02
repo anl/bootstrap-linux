@@ -2,7 +2,7 @@
 # Bootstrap puppetmaster and librarian-puppet for root user on an Ubuntu 12.04
 # machine.
 #
-# The system is assumed to have already been configured with boostrap-linux.
+# The system is assumed to have already been configured with bootstrap-linux.
 #
 # - Install required packages
 # - Create "git" user
@@ -45,7 +45,7 @@ fi
 
 #
 # Set up bare Puppet and Hiera - pushing to these repos deploys to
-# /etc/hiera and /etc/puppet via a post-receive hook.
+# /etc/hiera, /etc/heira-gpg and /etc/puppet via a post-receive hook.
 #
 
 # Create local "git" user:

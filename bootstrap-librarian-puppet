@@ -29,6 +29,13 @@ do
     esac
 done
 
+# Basic test to make sure system has had bootstrap-linux run on it:
+if [ ! -x /usr/bin/puppet ] ; then
+    echo '/usr/bin/puppet not found; did you run bootstrap-linux?'
+    echo
+    usage
+fi
+
 cwd=$PWD
 
 # Install 1.8.7-p370 by default, unless RUBY_VERS environment variable is set:

@@ -16,7 +16,7 @@
 set -e
 
 function usage() {
-    echo "$0 -a <ssh authorized_keys file>"
+    echo "$0 [ -a <ssh authorized_keys file> ]"
     echo "$0 -h"
     exit 1
 }

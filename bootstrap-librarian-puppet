@@ -142,7 +142,7 @@ Subkey-Type: RSA
 Key-Length: 2048
 Name-Real: Puppet
 Name-Comment: hiera-gpg
-Name-Email: puppet@$(hostname)
+Name-Email: puppet@$(hostname --fqdn)
 Expire-Date: 0
 Passphrase: ''
 %commit

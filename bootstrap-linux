@@ -37,7 +37,7 @@ do
 done
 
 # Check for non-default Puppet version to install:
-${puppet_version:=$puppet_default_vers}
+puppet_version=${puppet_version:-$puppet_default_vers}
 
 # Fqdn is a required argument:
 if [ -z "$fqdn" ] ; then

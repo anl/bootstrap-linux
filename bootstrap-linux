@@ -14,11 +14,11 @@ function usage {
     echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
     echo "Usage: $0 -h"
     echo
-    echo "  -d - Override install of $puppet_default_vers"
-    echo "  -n - Set FQDN"
-    echo "  -s - Use static IP addressing (Rackspace)"
-    echo "  -p - FQDN of Puppetmaster"
-    echo "  -i - Puppetmaster IP address, if FQDN does not resolve"
+    echo "  -d   Override Puppet version (default: ${puppet_default_vers})"
+    echo "  -n   Set FQDN"
+    echo "  -s   Use static IP addressing (Rackspace)"
+    echo "  -p   FQDN of Puppetmaster"
+    echo "  -i   Puppetmaster IP address, if FQDN does not resolve"
     exit 1
 }
 

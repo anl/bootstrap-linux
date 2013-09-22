@@ -77,6 +77,7 @@ su git -c "/usr/bin/git clone git://github.com/sstephenson/ruby-build.git .rbenv
 
 su -l git -c "rbenv install $RUBY_VERS"
 su -l git -c "rbenv shell $RUBY_VERS && gem install librarian-puppet --no-ri --no-rdoc && gem install puppet --no-ri --no-rdoc"
+su -l git -c "rbenv shell $RUBY_VERS && gem install r10k --no-ri --no-rdoc"
 
 # Create pushable repos under /srv/git for Hiera and Puppet
 /bin/mkdir /srv/git

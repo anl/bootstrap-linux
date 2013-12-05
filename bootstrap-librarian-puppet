@@ -16,15 +16,22 @@
 set -e
 
 function usage() {
-    echo "$0 [ -a <ssh authorized_keys file> ]"
+    echo "$0 [ -a <ssh authorized_keys file> ] [ -g ]"
     echo "$0 -h"
+    echo
+    echo "   -a    Specify authorized keys for git user"
+    echo "   -g    Generate a GPG key (requires substantial entropy)"
+    echo "   -h    Help (this message)"
     exit 1
 }
 
-while getopts "a:" flag
+gen_gpgkey=0
+while getopts "a:gh" flag
 do
     case $flag in
 	a) auth_keys=$OPTARG ;;
+	g) gen_gpgkey=1 ;;
+	h) usage ;;
 	*) usage ;;
     esac
 done
@@ -99,6 +106,10 @@ EOF
 /bin/chown git:git /srv/git/puppet.git/hooks/post-receive
 /bin/chmod 755 /srv/git/puppet.git/hooks/post-receive
 
+/usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
+/usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
+/usr/bin/puppet apply --modulepath=~/.puppet/modules -e "class { puppetmaster: hiera_gpg => true }"
+
 for repo in hiera hiera-gpg; do
     su git -c "/usr/bin/git init --bare /srv/git/${repo}.git"
 
@@ -114,15 +125,11 @@ EOF
 	mv /etc/${repo} /etc/${repo}.orig
     fi
 
-    /bin/mkdir /etc/${repo}
+    /bin/mkdir -p /etc/${repo}
     /bin/chown git:git /etc/${repo}
     /bin/chmod 755 /etc/${repo}
 
 done
-
-/usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
-/usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
-/usr/bin/puppet apply --modulepath=~/.puppet/modules -e "class { puppetmaster: hiera_gpg => true }"
 
 if [ -d /etc/puppet ] ; then
     mv /etc/puppet /etc/puppet.orig
@@ -136,8 +143,9 @@ su git -c "/usr/bin/git clone git://github.com/anl/etc-puppet.git /etc/puppet"
 su -l git -c "cd /etc/puppet; rbenv local $ruby_vers"
 su -l git -c "cd /etc/puppet; librarian-puppet update"
 
-# Create a gpg key for "puppet" account:
-sudo -u puppet -H gpg --batch --gen-key <<EOF
+if [[ $gen_gpgkey == 1 ]] ; then
+    # Create a gpg key for "puppet" account:
+    sudo -u puppet -H gpg --batch --gen-key <<EOF
 Key-Type: RSA
 Subkey-Type: RSA
 Key-Length: 2048
@@ -148,8 +156,9 @@ Expire-Date: 0
 Passphrase: ''
 %commit
 EOF
-echo "hiera-gpg public key:"
-sudo -u puppet -H gpg --export -a puppet@$(hostname)
+    echo "hiera-gpg public key:"
+    sudo -u puppet -H gpg --export -a puppet@$(hostname)
+fi
 
 # And back to where we started:
 cd $cwd

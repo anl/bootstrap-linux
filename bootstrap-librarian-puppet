@@ -106,7 +106,7 @@ EOF
 /bin/chown git:git /srv/git/puppet.git/hooks/post-receive
 /bin/chmod 755 /srv/git/puppet.git/hooks/post-receive
 
-/usr/bin/puppet module install cprice404-inifile -i ~/.puppet/modules
+/usr/bin/puppet module install puppetlabs-inifile -i ~/.puppet/modules
 /usr/bin/git clone https://github.com/anl/anl-puppetmaster.git ~/.puppet/modules/puppetmaster
 /usr/bin/puppet apply --modulepath=~/.puppet/modules -e "class { puppetmaster: hiera_gpg => true }"
 

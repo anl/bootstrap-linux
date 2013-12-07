@@ -91,8 +91,7 @@ su -l git -c "rbenv shell $ruby_vers && gem install r10k --no-ri --no-rdoc"
 /bin/chown git:git /srv/git
 
 cd /tmp # Need to be in a directory that user "git" can access
-su git -c "/usr/bin/git clone --bare git://github.com/anl/etc-puppet.git \
-    /srv/git/puppet.git"
+su git -c "/usr/bin/git init --bare /srv/git/puppet.git"
 
 cat > /srv/git/puppet.git/hooks/post-receive <<EOF
 #!/bin/bash

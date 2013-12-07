@@ -22,6 +22,11 @@ function usage {
     exit 1
 }
 
+if [ `id -u` -ne 0 ] ; then
+  echo "Re-run this script as root - this script modifies key system files."
+  exit 1
+fi
+
 dhcp=on
 
 while getopts "d:hi:n:p:s" flag

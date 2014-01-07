@@ -9,6 +9,7 @@
 
 # Default values:
 puppet_default_vers=3.4.2-1puppetlabs1
+release_default=precise
 
 function usage {
     echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
@@ -18,6 +19,7 @@ function usage {
     echo "  -n   Set FQDN"
     echo "  -s   Use static IP addressing (Rackspace)"
     echo "  -p   FQDN of Puppetmaster"
+    echo "  -r   OS release (default: precise)"
     echo "  -i   Puppetmaster IP address, if FQDN does not resolve"
     exit 1
 }
@@ -29,14 +31,15 @@ fi
 
 dhcp=on
 
-while getopts "d:hi:n:p:s" flag
+while getopts "d:hi:n:p:r:s" flag
 do
     case $flag in
 	d) puppet_version=$OPTARG ;;
 	i) pmip=$OPTARG ;;
 	n) fqdn=$OPTARG ;;
 	p) puppetmaster=$OPTARG ;;
-        s) dhcp=off ;;
+	r) release=$OPTARG ;;
+	s) dhcp=off ;;
 	*) usage ;;
     esac
 done
@@ -77,8 +80,8 @@ EOF
 fi
 
 # Add puppet repo:
-/usr/bin/curl -L -o /tmp/puppetlabs-release-precise.deb http://apt.puppetlabs.com/puppetlabs-release-precise.deb
-/usr/bin/dpkg -i /tmp/puppetlabs-release-precise.deb
+/usr/bin/curl -L -o /tmp/puppetlabs-release.deb http://apt.puppetlabs.com/puppetlabs-release-${release:=$release_default}.deb
+/usr/bin/dpkg -i /tmp/puppetlabs-release.deb
 
 # Update installed packages:
 /usr/bin/apt-get update

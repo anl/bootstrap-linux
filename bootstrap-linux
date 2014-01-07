@@ -12,7 +12,7 @@ puppet_default_vers=3.4.2-1puppetlabs1
 release_default=precise
 
 function usage {
-    echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]]"
+    echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]] [-r release]"
     echo "Usage: $0 -h"
     echo
     echo "  -d   Override Puppet version (default: ${puppet_default_vers})"

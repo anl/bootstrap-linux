@@ -1,5 +1,5 @@
 #!/bin/bash
-# Bootstrap an Ubuntu 12.04 machine.
+# Bootstrap an Ubuntu 12.04/Debian Wheezy/CentOS 6 machine.
 #
 # - Set hostname
 # - Add domain name to DNS search path via /etc/network/interfaces
@@ -47,6 +47,22 @@ do
     esac
 done
 
+# Get distro, distro_family:
+distro=$(cat /etc/issue | head -1 | awk '{ print $1 }')
+
+case $distro in
+    CentOS) 
+	distro_family=rhel ;;
+    Debian) 
+	distro_family=debian ;;
+    Ubuntu) 
+	distro_family=debian ;;
+    *)
+	echo "Unsupported distro: $distro"
+	usage
+	;;
+esac
+
 # Check for non-default Puppet version to install:
 puppet_version=${puppet_version:-$puppet_default_vers}
 
@@ -65,48 +81,51 @@ if [ -z "$puppetmaster" ] ; then
     fi
 fi
 
-# Set hostname, by removing domain from fqdn:
-hostname=$(echo "${fqdn}" | sed 's/\..*$//')
-echo $hostname > /etc/hostname
-/bin/hostname -F /etc/hostname
+case $distro_family in
+    debian)
 
-if [ $dhcp == 'on' ]; then
-    domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
-    cat > /etc/network/interfaces <<EOF
+	# Set hostname, by removing domain from fqdn:
+	hostname=$(echo "${fqdn}" | sed 's/\..*$//')
+	echo $hostname > /etc/hostname
+	/bin/hostname -F /etc/hostname
+
+	if [ $dhcp == 'on' ]; then
+	    domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
+	    cat > /etc/network/interfaces <<EOF
 auto lo eth0
 iface lo inet loopback
 
 iface eth0 inet dhcp
   dns-domain $domain
 EOF
-    /usr/sbin/service networking stop
-    /usr/sbin/service networking start
-fi
+	    /usr/sbin/service networking stop
+	    /usr/sbin/service networking start
+	fi
 
-# Add puppet repo:
-/usr/bin/curl -L -o /tmp/puppetlabs-release.deb http://apt.puppetlabs.com/puppetlabs-release-${release:=$release_default}.deb
-/usr/bin/dpkg -i /tmp/puppetlabs-release.deb
+	# Add puppet repo:
+	/usr/bin/curl -L -o /tmp/puppetlabs-release.deb http://apt.puppetlabs.com/puppetlabs-release-${release:=$release_default}.deb
+	/usr/bin/dpkg -i /tmp/puppetlabs-release.deb
 
-# Update installed packages:
-/usr/bin/apt-get update
-/usr/bin/apt-get -y dist-upgrade
+	# Update installed packages:
+	/usr/bin/apt-get update
+	/usr/bin/apt-get -y dist-upgrade
 
-# Add puppet agent:
-/usr/bin/apt-get -y install puppet=${puppet_version} puppet-common=${puppet_version}
+	# Add puppet agent:
+	/usr/bin/apt-get -y install puppet=${puppet_version} puppet-common=${puppet_version}
 
-# Add additional packages:
-/usr/bin/apt-get -y install git
+	# Add additional packages:
+	/usr/bin/apt-get -y install git
 
-# Add IP address and hostname to /etc/hosts:
-hosts_tmp=$(mktemp)
-chmod 644 $hosts_tmp
-ip=$(facter ipaddress)
-echo "127.0.1.1 ${fqdn} ${hostname}" > $hosts_tmp
-grep -v 127.0.1.1 /etc/hosts >> $hosts_tmp
-mv $hosts_tmp /etc/hosts
+	# Add IP address and hostname to /etc/hosts:
+	hosts_tmp=$(mktemp)
+	chmod 644 $hosts_tmp
+	ip=$(facter ipaddress)
+	echo "127.0.1.1 ${fqdn} ${hostname}" > $hosts_tmp
+	grep -v 127.0.1.1 /etc/hosts >> $hosts_tmp
+	mv $hosts_tmp /etc/hosts
 
-if [ ! -z "$puppetmaster" ] ; then
-    cat > /etc/puppet/puppet.conf <<EOF
+	if [ ! -z "$puppetmaster" ] ; then
+	    cat > /etc/puppet/puppet.conf <<EOF
 [main]
 logdir=/var/log/puppet
 vardir=/var/lib/puppet
@@ -124,11 +143,14 @@ ssl_client_verify_header = SSL_CLIENT_VERIFY
 
 EOF
 
-    if [ ! -z "$pmip" ] ; then
-	pmhostname=$(echo "${puppetmaster}" | sed 's/\..*$//')
-	echo "$pmip $puppetmaster $pmhostname" >> /etc/hosts
-    fi
-
-fi
-
+	    if [ ! -z "$pmip" ] ; then
+		pmhostname=$(echo "${puppetmaster}" | sed 's/\..*$//')
+		echo "$pmip $puppetmaster $pmhostname" >> /etc/hosts
+	    fi
+	    
+	fi
+	;;
+    rhel)
+	;;
+esac
 echo "Bootstrap complete."

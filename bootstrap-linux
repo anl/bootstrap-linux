@@ -9,20 +9,23 @@
 
 # Default values:
 puppet_default_vers=3.4.2-1puppetlabs1
-release_default=precise
+deb_release_default=precise
+rhel_release_default=6
+rhel_release_vers_default=7
 
 # Stop on error:
 set -e
 
 function usage {
-    echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]] [-r release]"
+    echo "Usage: $0 [-d puppet_version] -n fqdn [-s] [-p puppetmasterFQDN [-i puppetmasterIP]] [-r release] [-v version]"
     echo "Usage: $0 -h"
     echo
     echo "  -d   Override Puppet version (default: ${puppet_default_vers})"
     echo "  -n   Set FQDN"
     echo "  -s   Use static IP addressing (Rackspace)"
     echo "  -p   FQDN of Puppetmaster"
-    echo "  -r   OS release (default: precise)"
+    echo "  -r   OS release (default: precise for deboids, 6 for rhel)"
+    echo "  -v   OS release version (default: 7 for rhel)"
     echo "  -i   Puppetmaster IP address, if FQDN does not resolve"
     exit 1
 }
@@ -34,7 +37,7 @@ fi
 
 dhcp=on
 
-while getopts "d:hi:n:p:r:s" flag
+while getopts "d:hi:n:p:r:sv:" flag
 do
     case $flag in
 	d) puppet_version=$OPTARG ;;
@@ -43,6 +46,7 @@ do
 	p) puppetmaster=$OPTARG ;;
 	r) release=$OPTARG ;;
 	s) dhcp=off ;;
+	v) rhel_release_vers=$OPTARG ;;
 	*) usage ;;
     esac
 done
@@ -73,6 +77,9 @@ if [ -z "$fqdn" ] ; then
     usage
 fi
 
+# Set hostname, by removing domain from fqdn:
+hostname=$(echo "${fqdn}" | sed 's/\..*$//')
+
 if [ -z "$puppetmaster" ] ; then
     if [ ! -z "$pmip" ] ; then
 	echo "Must set Puppetmaster FQDN when specifying its IP"
@@ -83,12 +90,11 @@ fi
 
 case $distro_family in
     debian)
-
-	# Set hostname, by removing domain from fqdn:
-	hostname=$(echo "${fqdn}" | sed 's/\..*$//')
+	# Configure hostname:
 	echo $hostname > /etc/hostname
 	/bin/hostname -F /etc/hostname
 
+	# Configure networking:
 	if [ $dhcp == 'on' ]; then
 	    domain=`echo ${fqdn} | sed 's/^[^.]*\.//'`
 	    cat > /etc/network/interfaces <<EOF
@@ -103,7 +109,7 @@ EOF
 	fi
 
 	# Add puppet repo:
-	/usr/bin/curl -L -o /tmp/puppetlabs-release.deb http://apt.puppetlabs.com/puppetlabs-release-${release:=$release_default}.deb
+	/usr/bin/curl -L -o /tmp/puppetlabs-release.deb http://apt.puppetlabs.com/puppetlabs-release-${release:=$deb_release_default}.deb
 	/usr/bin/dpkg -i /tmp/puppetlabs-release.deb
 
 	# Update installed packages:
@@ -151,6 +157,23 @@ EOF
 	fi
 	;;
     rhel)
+	# Configure hostname:
+	/bin/sed -i '/^HOSTNAME=/d' /etc/sysconfig/network
+	echo "HOSTNAME=${hostname}" >> /etc/sysconfig/network
+	/bin/hostname $hostname
+
+	# Configure networking - assume only eth0!:
+	if [[ $dhcp == 'on' ]] ; then
+	    /bin/sed -i '/^BOOTPROTO=/d' /etc/sysconfig/network-scripts/ifcfg-eth0
+	    echo 'BOOTPROTO="dhcp"' >> /etc/sysconfig/network-scripts/ifcfg-eth0
+	fi
+	/sbin/service network restart
+
+	# Add puppet repo:
+	/bin/rpm -ivh https://yum.puppetlabs.com/el/6/products/x86_64/puppetlabs-release-${release:=$rhel_release_default}-${rhel_release_vers:=$rhel_release_vers_default}.noarch.rpm
+
+	# Update installed packages:
+	/usr/bin/yum -y update
 	;;
 esac
 echo "Bootstrap complete."

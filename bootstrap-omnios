@@ -2,8 +2,19 @@
 
 # WIP - not functional or feature-complete
 
+resolver=192.168.2.2
+
 interface=$(dladm show-phys -p -o DEVICE)
 
 ipadm create-if $interface
 ipadm create-addr -T dhcp ${interface}/v4
 
+echo > /etc/resolv.conf <<EOF
+nameserver $resolver
+EOF
+
+cp -p /etc/nsswitch.conf /etc/nsswitch.conf-orig
+cp /etc/nsswitch.dns /etc/nsswitch.conf
+
+sed -i 's/^PermitRootLogin no/PermitRootLogin without-password/' /etc/ssh/sshd_config
+svcadm refresh ssh

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# WIP - not functional or feature-complete
+
+interface=$(dladm show-phys -p -o DEVICE)
+
+ipadm create-if $interface
+ipadm create-addr -T dhcp ${interface}/v4
+

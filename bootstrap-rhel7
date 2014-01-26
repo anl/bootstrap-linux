@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# WIP, not feature-complete or necessarily functional
+
+set -e
+
+while getopts 'n:' flag
+do
+    case $flag in
+	n) fqdn=$OPTARG ;;
+    esac
+done
+
+# Ethernet devices are installed to not come up on boot, or just DHCP ones?
+for ifc in /etc/sysconfig/network-scripts/ifcfg-en* ; do 
+    sed -i 's/^ONBOOT=no/ONBOOT=yes/' $ifc
+done
+
+# Set hostname:
+echo $fqdn > /etc/hostname
+/usr/bin/hostname $fqdn

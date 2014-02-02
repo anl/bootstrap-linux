@@ -1,0 +1,10 @@
+#!/bin/sh
+
+/usr/sbin/portsnap fetch
+/usr/sbin/portsnap extract
+
+ASSUME_ALWAYS_YES=YES /usr/sbin/pkg bootstrap
+
+/usr/sbin/pkg install -y rubygem-chef
+/usr/sbin/pkg install -y bash
+/usr/sbin/pkg install -y sudo

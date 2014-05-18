@@ -8,7 +8,7 @@
 # - Install prereqs for additional configuration
 
 # Default values:
-puppet_default_vers=3.4.2-1puppetlabs1
+puppet_default_vers=3.6.0-1puppetlabs1
 deb_release_default=precise
 rhel_release_default=6
 rhel_release_vers_default=7
@@ -138,7 +138,6 @@ vardir=/var/lib/puppet
 ssldir=/var/lib/puppet/ssl
 rundir=/var/run/puppet
 factpath=\$vardir/lib/facter
-templatedir=\$confdir/templates
 server = $puppetmaster
 
 [master]

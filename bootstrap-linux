@@ -8,7 +8,7 @@
 # - Install prereqs for additional configuration
 
 # Default values:
-puppet_default_vers=3.6.0-1puppetlabs1
+puppet_default_vers=3.6.1-1puppetlabs1
 deb_release_default=precise
 rhel_release_default=6
 rhel_release_vers_default=7

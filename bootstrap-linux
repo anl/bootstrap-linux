@@ -104,8 +104,8 @@ iface lo inet loopback
 iface eth0 inet dhcp
   dns-domain $domain
 EOF
-	    /usr/sbin/service networking stop
-	    /usr/sbin/service networking start
+	    /etc/init.d/networking stop
+	    /etc/init.d/networking start
 	fi
 
 	# Add puppet repo:
